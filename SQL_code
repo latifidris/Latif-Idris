@@ -53,3 +53,39 @@ FROM vendors_with_duplicates;
 
 SELECT * FROM vendors;
 
+
+select * from vendors;
+
+select * from orders;
+
+--- Q1
+select * from orders 
+WHERE is_successful_order 
+like '%TRUE%'
+order by gmv_local desc
+;
+
+--- Q2
+select country_name as Country, gmv_local as Total_GMV
+from orders
+group by country_name
+order by gmv_local
+;
+
+--- Q3
+select orders.country_name as Country, vendors.vendor_name as Vendor, orders.gmv_local as GMV
+from orders
+left join vendors 
+on orders.vendor_id = vendors.id
+group by vendors.vendor_name
+order by Country, GMV;
+
+--- Q4
+select vendors.vendor_name, orders.date_local, orders.country_name, orders.gmv_local
+from orders
+right join vendors
+on orders.vendor_id = vendors.id
+group by year(orders.date_local), vendors.vendor_name
+;
+
+

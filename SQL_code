@@ -19,6 +19,13 @@ SHOW VARIABLES LIKE "secure_file_priv";
 
 SELECT * FROM orders;
 
+CREATE TABLE vendors_with_duplicates (
+    id INT NOT NULL,
+    rdbms_id INT NOT NULL,
+    country_name VARCHAR(1000) NOT NULL,
+    vendor_name VARCHAR (1000) NOT NULL
+);
+
 CREATE TABLE vendors (
     id INT NOT NULL,
     rdbms_id INT NOT NULL,
@@ -26,13 +33,23 @@ CREATE TABLE vendors (
     vendor_name VARCHAR (1000) NOT NULL
 );
 
+DROP TABLE vendors;
+
+
 LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads/vendors_db.csv'
-INTO TABLE vendors
+INTO TABLE vendors_with_duplicates
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
-SELECT * FROM vendors;
+SELECT * FROM vendors_with_duplicates;
 
 SELECT COUNT(DISTINCT id) FROM vendors;
+
+INSERT INTO vendors
+SELECT distinct id, rdbms_id, country_name, vendor_name 
+FROM vendors_with_duplicates;
+
+SELECT * FROM vendors;
+

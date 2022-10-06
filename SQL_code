@@ -1,0 +1,38 @@
+Create table orders (
+    rdbms_id INT Not null,
+    country_name VARCHAR(1000) not null,
+    date_local DATE not null,
+    vendor_id INT Not null,
+    customer_id INT not null,
+    gmv_local DECIMAL(10, 2) Null,
+    is_voucher_used VARCHAR(1000) not null,
+    is_successful_order VARCHAR(1000) not null);
+
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads/orders_db.csv'
+INTO TABLE orders
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+SHOW VARIABLES LIKE "secure_file_priv";
+
+SELECT * FROM orders;
+
+CREATE TABLE vendors (
+    id INT NOT NULL,
+    rdbms_id INT NOT NULL,
+    country_name VARCHAR(1000) NOT NULL,
+    vendor_name VARCHAR (1000) NOT NULL
+);
+
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads/vendors_db.csv'
+INTO TABLE vendors
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+SELECT * FROM vendors;
+
+SELECT COUNT(DISTINCT id) FROM vendors;

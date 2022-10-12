@@ -1,3 +1,5 @@
+--- CREAT TABLE AND LOAD CSV FILE
+
 Create table orders (
     rdbms_id INT Not null,
     country_name VARCHAR(1000) not null,
@@ -8,7 +10,7 @@ Create table orders (
     is_voucher_used VARCHAR(1000) not null,
     is_successful_order VARCHAR(1000) not null);
 
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads/orders_db.csv'
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/orders_db.csv'
 INTO TABLE orders
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -16,8 +18,6 @@ LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
 SHOW VARIABLES LIKE "secure_file_priv";
-
-SELECT * FROM orders;
 
 CREATE TABLE vendors_with_duplicates (
     id INT NOT NULL,
@@ -33,10 +33,7 @@ CREATE TABLE vendors (
     vendor_name VARCHAR (1000) NOT NULL
 );
 
-DROP TABLE vendors;
-
-
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads/vendors_db.csv'
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/vendors_db.csv'
 INTO TABLE vendors_with_duplicates
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
@@ -44,26 +41,23 @@ LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
 SELECT * FROM vendors_with_duplicates;
-
+SELECT * FROM vendors;
 SELECT COUNT(DISTINCT id) FROM vendors;
+
+--- MIGRATE non-duplicate data to the new table
 
 INSERT INTO vendors
 SELECT distinct id, rdbms_id, country_name, vendor_name 
 FROM vendors_with_duplicates;
 
-SELECT * FROM vendors;
-
-
-select * from vendors;
-
-select * from orders;
-
+--- PROJECT QUESTION STARTED -----------------------------------------------------------------------------------------------
 --- Q1 List all successful orders that were made in Taiwan
 --- Expected answer: Select * for results to display all fields in the original table and sort by highest to lowest gmv_local
 
 select * from orders 
 WHERE is_successful_order 
 like '%TRUE%'
+AND country_name = 'Taiwan'
 order by gmv_local desc
 ;
 
@@ -84,16 +78,25 @@ from orders
 left join vendors 
 on orders.vendor_id = vendors.id
 group by vendors.vendor_name
-order by Country, GMV;
+order by  Country, GMV;
 
 --- Q4 Find the top 2 vendors per country, in each year available in the dataset
 --- Expected answer: Display only 2 vendors per country, year, country, and total GMV, sorted by country, then vendor GMV 
 
-select vendors.vendor_name, orders.date_local, orders.country_name, orders.gmv_local
-from orders
-right join vendors
-on orders.vendor_id = vendors.id
-group by year(orders.date_local), vendors.vendor_name
+SELECT * FROM orders;
+
+SELECT vendors.vendor_name, orders.country_name, Year(orders.date_local) as year, orders.gmv_local, 
+ROW_NUMBER() OVER (PARTITION BY orders.country_name, year(orders.date_local) order by orders.gmv_local DESC) AS top
+from orders right join vendors on orders.vendor_id = vendors.id
+group by orders.vendor_id, orders.country_name, year
 ;
 
-
+SELECT vendor_name, year, country_name, gmv_local FROM 
+(
+    SELECT vendors.vendor_name, orders.country_name, Year(orders.date_local) as year, orders.gmv_local, 
+    ROW_NUMBER() OVER (PARTITION BY orders.country_name, year(orders.date_local) order by orders.gmv_local DESC) AS top
+    from orders right join vendors on orders.vendor_id = vendors.id
+    group by orders.vendor_id, orders.country_name, year
+) RNK
+WHERE Top <=2
+ORDER BY country_name, year, gmv_local DESC;

@@ -58,21 +58,27 @@ select * from vendors;
 
 select * from orders;
 
---- Q1
+--- Q1 List all successful orders that were made in Taiwan
+--- Expected answer: Select * for results to display all fields in the original table and sort by highest to lowest gmv_local
+
 select * from orders 
 WHERE is_successful_order 
 like '%TRUE%'
 order by gmv_local desc
 ;
 
---- Q2
+--- Q2 Find the Total GMV by country
+--- Expected answer: Display only Country and Total GMV, sort by GMV
+
 select country_name as Country, gmv_local as Total_GMV
 from orders
 group by country_name
 order by gmv_local
 ;
 
---- Q3
+--- Q3 Find the top active vendor by GMV in each country
+--- Expected answer: Display only country, vendor name and total GMV, sort by country first then vendor GMV
+
 select orders.country_name as Country, vendors.vendor_name as Vendor, orders.gmv_local as GMV
 from orders
 left join vendors 
@@ -80,7 +86,9 @@ on orders.vendor_id = vendors.id
 group by vendors.vendor_name
 order by Country, GMV;
 
---- Q4
+--- Q4 Find the top 2 vendors per country, in each year available in the dataset
+--- Expected answer: Display only 2 vendors per country, year, country, and total GMV, sorted by country, then vendor GMV 
+
 select vendors.vendor_name, orders.date_local, orders.country_name, orders.gmv_local
 from orders
 right join vendors
